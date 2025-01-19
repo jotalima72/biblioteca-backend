@@ -1,12 +1,21 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, Inject } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
+import { firstValueFrom } from 'rxjs';
 
+@ApiTags('users')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(@Inject('USER_SERVICE') private userService: ClientProxy) { }
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  async getHello() {
+    try {
+      const response = await firstValueFrom(this.userService.send('hello', { name: 'jotinha' }));
+      return response
+    }
+    catch (error) {
+      console.log(error);
+    }
   }
 }
