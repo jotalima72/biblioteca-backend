@@ -1,22 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { ConfigService } from './config/config.service';
 @Module({
   imports: [],
   controllers: [AppController],
   providers: [
+    ConfigService,
     {
       provide: 'USER_SERVICE',
-      useFactory: () => {
-        return ClientProxyFactory.create( {
-          transport: Transport.RMQ,
-          options: {
-            urls: ['amqp://myuser:mypassword@rabbitmq:5672'],
-            queue: 'library_queue',
-          },
-        });
+      useFactory: (config: ConfigService) => {
+        return ClientProxyFactory.create(config.get('microservice_options').user_service);
       },
-      inject: [],
+      inject: [ConfigService],
     },
   ],
 })
